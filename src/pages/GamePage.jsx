@@ -6,6 +6,7 @@ export default function GamePage({ games }) {
   const navigate = useNavigate();
   const game = location.state?.game;
 
+  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
   const [userId, setUserId] = useState("");
@@ -31,26 +32,30 @@ export default function GamePage({ games }) {
       date: new Date().toLocaleString(),
       items: [
         {
-          game,
-          diamond: selected.amount,
-          stock: selected.stock,
-          discount: selected.discount,
+          game: game?.name,
+          amount: selected.amount,
+          price: selected.price,
         },
       ],
-      userId,
-      payment,
+      userId: userId,
+      method: payment,
+      status: "pending",
     };
 
-    // SAVE HISTORY
-    const history = JSON.parse(localStorage.getItem("history")) || [];
-    history.push(order);
-    localStorage.setItem("history", JSON.stringify(history));
-
-    // Note: Perubahan stok tidak disimpan karena data dimuat dari JSON static
-    // Untuk fitur ini, butuh implementasi backend/API
-
-    // pindah ke successpage
-    navigate("/success", { state: { order } });
+    fetch("http://localhost:8000/api/transaction.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Data berhasil disimpan:", data);
+        navigate("/success", { state: { data } });
+      })
+      .catch((err) => console.error("Fetch error:", err))
+      .finally(() => {
+        setLoading(false); 
+      });
   };
 
   return (
@@ -70,7 +75,6 @@ export default function GamePage({ games }) {
         </div>
       </div>
 
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {items.map((item) => (
           <button
@@ -78,16 +82,18 @@ export default function GamePage({ games }) {
             onClick={() => setSelected(item)}
             className={`
                 p-4 rounded-xl transform transition-all duration-200 border 
-                ${selected?.id === item.id
-                  ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/50"
-                  : "bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-gray-500 hover:shadow-lg"
+                ${
+                  selected?.id === item.id
+                    ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/50"
+                    : "bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-gray-500 hover:shadow-lg"
                 }
             `}
           >
-            <p className="font-bold">{item.amount} {game?.currency}</p>
+            <p className="font-bold">
+              {item.amount} {game?.currency}
+            </p>
             <p>Rp {item.price.toLocaleString()}</p>
           </button>
-
         ))}
       </div>
 
@@ -108,15 +114,27 @@ export default function GamePage({ games }) {
         <div className="relative">
           <select
             className="w-full p-3 rounded bg-gray-800 appearance-none"
-            onChange={(e) => setPayment(e.target.value)}>
-            <option value="" disabled>Pilih Metode Pembayaran</option>
+            onChange={(e) => setPayment(e.target.value)}
+          >
+            <option value="" disabled selected>
+              Pilih Metode Pembayaran
+            </option>
             <option value="OVO">OVO</option>
             <option value="Dana">Dana</option>
             <option value="Gopay">Gopay</option>
           </select>
           <span className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <svg className="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 9.707a.946.95 .946.95 0 0 1 .707.708l4.292 4.293a.962.96 .962.96 0 0 1 .027.084l-5.5 5.5a.94.09 .94.09 0 0 0-.027.084l-4.293 4.293a.962.96 .962.96 0 0 0 .027.084l5.5-5.5a.946.95 .946.95 0 0 1-.707.708z" clipRule="evenodd" />
+            <svg
+              className="w-5 h-5 text-gray-600"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 9.707a.946.95 .946.95 0 0 1 .707.708l4.292 4.293a.962.96 .962.96 0 0 1 .027.084l-5.5 5.5a.94.09 .94.09 0 0 0-.027.084l-4.293 4.293a.962.96 .962.96 0 0 0 .027.084l5.5-5.5a.946.95 .946.95 0 0 1-.707.708z"
+                clipRule="evenodd"
+              />
             </svg>
           </span>
         </div>
@@ -124,8 +142,16 @@ export default function GamePage({ games }) {
 
       <button
         onClick={checkout}
-        className="w-full bg-blue-600 py-3 rounded-xl font-semibold">
-        Beli Sekarang
+        disabled={loading}
+        className={`w-full py-3 rounded-xl font-semibold 
+                    ${
+                      loading
+                        ? "bg-gray-600 cursor-not-allowed"
+                        : "bg-blue-600 cursor-pointer"
+                    }
+                  `}
+      >
+        {loading ? "Memproses..." : "Beli Sekarang"}
       </button>
     </div>
   );

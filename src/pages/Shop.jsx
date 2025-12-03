@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import LoadingPage from "./LoadingPage";
+import LoadingPage from "../components/LoadingPage";
+import {LazyImage} from "../components/LazyLoad";
+
 export default function Shop({ game }) {
 
   const [loading, setLoading] = useState(true);
@@ -30,11 +32,7 @@ export default function Shop({ game }) {
                 className="group relative bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 cursor-pointer"
               >
                 <div className="relative aspect-square overflow-hidden bg-gray-700">
-                  <img
-                    src={g.image}
-                    alt={g.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
+                  <LazyImage src={g.image} alt={g.name} />
                 </div>
 
                 <div className="p-4">

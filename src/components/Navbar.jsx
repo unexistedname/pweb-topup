@@ -6,9 +6,7 @@ export default function Navbar() {
 
   const menu = [
     { label: "Home", to: "/" },
-    { label: "Cart", to: "/cart" },
     { label: "History", to: "/history" },
-    { label: "Admin", to: "/admin" },
   ];
 
   return (
