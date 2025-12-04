@@ -14,11 +14,13 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <h1 className="text-2xl font-bold mb-4">Riwayat Pembelian</h1>
 
+      {!history ? (
         <p className="flex items-center">Belum ada transaksi.</p>
       ) : (
         <div className="flex flex-col-reverse gap-4">
+          {history.map((history) => (
             <div
-              key={order.id}
+              key={history.id}
               className="bg-gray-800 p-4 rounded-xl border border-gray-700 relative"
             >
               {/* STATUS DI KANAN */}
@@ -26,22 +28,22 @@ export default function HistoryPage() {
                 className={`
                   absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold
                   ${
-                    order.status === "pending"
+                    history.status === "pending"
                       ? "bg-yellow-500 text-black"
-                      : order.status === "completed"
+                      : history.status === "completed"
                       ? "bg-green-500 text-black"
-                      : order.status === "canceled"
+                      : history.status === "canceled"
                       ? "bg-red-500 text-black"
                       : "bg-gray-500"
                   }
                 `}
               >
-                {order.status}
+                {history.status}
               </span>
 
-              <p className="font-bold">ORDER #{order.id}</p>
+              <p className="font-bold">ORDER #{history.id}</p>
 
-              {order.items?.map((it, idx) => (
+              {history.items?.map((it, idx) => (
                 <div key={idx} className="mt-2">
                   <p>
                     <strong>Game:</strong> {it.game}
@@ -57,12 +59,13 @@ export default function HistoryPage() {
               ))}
 
               <p className="mt-2">
-                <strong>Metode:</strong> {order.method}
+                <strong>Metode:</strong> {history.method}
               </p>
-              <p className="text-xs text-gray-400 mt-1">{order.date}</p>
+              <p className="text-xs text-gray-400 mt-1">{history.date}</p>
             </div>
           ))}
         </div>
+      )}
     </div>
   );
 }
